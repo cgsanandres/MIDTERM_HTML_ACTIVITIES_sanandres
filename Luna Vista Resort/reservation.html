@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Luna Vista Resort | Booking</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background:url("images/biyatch.jpeg") center/cover no-repeat;
+}
+
+header {
+    background-color: #0d3b66;
+    padding: 15px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header h1 {
+    color: white;
+    margin: 0;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    margin-left: 20px;
+}
+
+nav a:hover {
+    text-decoration: underline;
+}
+
+.section {
+    padding: 60px 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.form-container {
+   background: rgba(255,255,255,0.2);
+	backdrop-filter: blur(12px);
+	border: 1px solid rgba(255,255,255,0.3);
+    padding: 40px;
+    border-radius: 10px;
+    width: 400px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+}
+
+.form-container h2 {
+    text-align: center;
+    margin-top: 0;
+}
+
+input, select {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    background-color: #f4a261;
+    border: none;
+    color: white;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #e76f51;
+}
+
+footer {
+    background-color: #0d3b66;
+    color: white;
+    text-align: center;
+    padding: 15px;
+    margin-top: 50px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>Luna Vista Resort</h1>
+    <nav>
+        <a href="index.html">Home</a>
+		<a href="rooms.html">Rooms</a>
+		<a href="amenities.html">Amenities</a>
+		<a href="reservation.html">Reservation</a>
+		<a href="contact.html">Contact</a>
+		<a href="about.html">About</a>
+		<a href="account.html">Account</a>
+    </nav>
+</header>
+
+<section class="section">
+    <div class="form-container">
+        <h2>Book Your Stay</h2>
+
+        <form onsubmit="return confirmBooking()">
+            <input type="text" placeholder="Full Name" required>
+            <input type="email" placeholder="Email Address" required>
+
+            <label>Check-In Date</label>
+            <input type="date" required>
+
+            <label>Check-Out Date</label>
+            <input type="date" required>
+
+            <label>Room Type</label>
+            <select required>
+                <option value="">Select Room</option>
+                <option>Standard Room - $120/night</option>
+                <option>Deluxe Ocean View - $220/night</option>
+                <option>Luxury Suite - $350/night</option>
+            </select>
+
+            <label>Number of Guests</label>
+            <select required>
+                <option value="">Select Guests</option>
+                <option>1 Guest</option>
+                <option>2 Guests</option>
+                <option>3 Guests</option>
+                <option>4 Guests</option>
+            </select>
+
+            <button type="submit">Reserve</button>
+        </form>
+    </div>
+	
+	<script src="script.js"></script>
+	
+</section>
+
+<footer>
+    © 2026 Luna Vista Resort | All Rights Reserved
+</footer>
+
+<script>
+function confirmBooking() {
+    alert("Thank you! Your booking request has been submitted.");
+    return false; 
+}
+</script>
+
+</body>
+</html>
