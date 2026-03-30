@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthSync – Medical Records</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* -------------------------- GLOBAL VARIABLES & RESET -------------------------- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        :root {
+            --primary-blue: #165DFF;
+            --primary-green: #36B37E;
+            --secondary-blue: #0A4BDE;
+            --alert-red: #FF5630;
+            --warning-yellow: #FFAB00;
+            --light-gray: #F5F7FA;
+            --medium-gray: #EAECEF;
+            --dark-gray: #42526E;
+            --text-muted: #6B778C;
+            --white: #FFFFFF;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.12);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --border-radius: 8px;
+            --border-radius-lg: 16px;
+        }
+
+        body {
+            background-color: var(--light-gray);
+            color: var(--dark-gray);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* -------------------------- SIDEBAR NAVIGATION -------------------------- */
+        .sidebar {
+            width: 280px;
+            background-color: var(--white);
+            box-shadow: var(--shadow-sm);
+            padding: 2rem;
+            position: fixed;
+            height: 100vh;
+            transition: var(--transition);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .sidebar-collapsed {
+            width: 80px;
+            padding: 2rem 1rem;
+            text-align: center;
+        }
+
+        .sidebar-logo-container {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            margin-bottom: 3rem;
+        }
+
+        .sidebar-collapsed .sidebar-logo-container {
+            justify-content: center;
+        }
+
+        .sidebar-logo {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .sidebar-brand-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        .sidebar-collapsed .sidebar-brand-name {
+            display: none;
+        }
+
+        .provider-profile {
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--medium-gray);
+        }
+
+        .sidebar-collapsed .provider-profile {
+            display: none;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .profile-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid var(--primary-blue);
+        }
+
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-info h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .profile-info p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .profile-badge {
+            padding: 0.2rem 0.6rem;
+            background-color: rgba(22, 93, 255, 0.1);
+            color: var(--primary-blue);
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: inline-block;
+            margin-top: 0.5rem;
+        }
+
+        .profile-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .btn-profile {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .btn-profile-edit {
+            background-color: var(--light-gray);
+            color: var(--dark-gray);
+        }
+
+        .btn-profile-edit:hover {
+            background-color: var(--medium-gray);
+        }
+
+        .btn-profile-logout {
+            background-color: var(--alert-red);
+            color: var(--white);
+        }
+
+        .btn-profile-logout:hover {
+            background-color: #e04a2b;
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            padding: 1rem;
+            text-decoration: none;
+            color: var(--dark-gray);
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+            font-weight: 500;
+        }
+
+        .sidebar-collapsed .nav-link span {
+            display: none;
+        }
+
+        .sidebar-collapsed .nav-link {
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .nav-link.active, .nav-link:hover {
+            background-color: var(--primary-blue);
+            color: var(--white);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .sidebar-toggle-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: var(--dark-gray);
+            cursor: pointer;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+            align-self: flex-start;
+        }
+
+        .sidebar-collapsed .sidebar-toggle-btn {
+            align-self: center;
+        }
+
+        .sidebar-toggle-btn:hover {
+            background-color: var(--medium-gray);
+        }
+
+        /* -------------------------- MAIN CONTENT -------------------------- */
+        .main-content {
+            margin-left: 280px;
+            transition: var(--transition);
+            padding: 2rem;
+        }
+
+        .sidebar-collapsed + .main-content {
+            margin-left: 80px;
+        }
+
+        /* -------------------------- TOP BAR -------------------------- */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            background-color: var(--white);
+            padding: 1rem 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .top-bar-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .notification-icon {
+            position: relative;
+            font-size: 1.5rem;
+            color: var(--dark-gray);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .notification-icon:hover {
+            color: var(--primary-blue);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 18px;
+            height: 18px;
+            background-color: var(--alert-red);
+            color: var(--white);
+            border-radius: 50%;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-input {
+            padding: 0.7rem 1rem 0.7rem 2.5rem;
+            border: 1px solid var(--medium-gray);
+            border-radius: var(--border-radius);
+            font-size: 0.95rem;
+            width: 250px;
+            transition: var(--transition);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(22, 93, 255, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        .btn-add {
+            padding: 0.8rem 1.5rem;
+            background-color: var(--primary-blue);
+            color: var(--white);
+            border: none;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .btn-add:hover {
+            background-color: var(--secondary-blue);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* -------------------------- RECORDS STATS -------------------------- */
+        .records-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .stats-card {
+            background-color: var(--white);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            transition: var(--transition);
+        }
+
+        .stats-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: var(--border-radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--white);
+        }
+
+        .icon-total { background-color: var(--primary-blue); }
+        .icon-pending { background-color: var(--warning-yellow); }
+        .icon-completed { background-color: var(--primary-green); }
+        .icon-archived { background-color: var(--text-muted); }
+
+        .card-content h3 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+        }
+
+        .card-content p {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+
+        .card-content .change-indicator {
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .indicator-up {
+            color: var(--primary-green);
+        }
+
+        .indicator-down {
+            color: var(--alert-red);
+        }
+
+        /* -------------------------- RECORDS FILTERS -------------------------- */
+        .records-filters {
+            background-color: var(--white);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            align-items: end;
+        }
+
+        .filter-group label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--dark-gray);
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .filter-input, .filter-select {
+            width: 100%;
+            padding: 0.7rem 1rem;
+            border: 1px solid var(--medium-gray);
+            border-radius: var(--border-radius);
+            font-size: 0.95rem;
+            transition: var(--transition);
+        }
+
+        .filter-input:focus, .filter-select:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(22, 93, 255, 0.1);
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn-filter {
+            padding: 0.7rem 1.2rem;
+            border: none;
+            border-radius: var(--border-radius);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-apply {
+            background-color: var(--primary-blue);
+            color: var(--white);
+        }
+
+        .btn-apply:hover {
+            background-color: var(--secondary-blue);
+        }
+
+        .btn-reset {
+            background-color: var(--light-gray);
+            color: var(--dark-gray);
+        }
+
+        .btn-reset:hover {
+            background-color: var(--medium-gray);
+        }
+
+        /* -------------------------- MEDICAL RECORDS TABLE -------------------------- */
+        .records-section {
+            background-color: var(--white);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 2rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .section-action {
+            text-decoration: none;
+            color: var(--primary-blue);
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: var(--transition);
+        }
+
+        .section-action:hover {
+            text-decoration: underline;
+        }
+
+        .records-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .records-table th,
+        .records-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--medium-gray);
+        }
+
+        .records-table th {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .records-table td {
+            font-size: 0.95rem;
+        }
+
+        .patient-avatar-small {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin-right: 0.8rem;
+        }
+
+        .patient-avatar-small img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .patient-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .patient-name {
+            font-weight: 500;
+        }
+
+        .patient-id {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+
+        .record-type {
+            padding: 0.3rem 0.8rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .type-consultation {
+            background-color: rgba(22, 93, 255, 0.1);
+            color: var(--primary-blue);
+        }
+
+        .type-lab {
+            background-color: rgba(54, 179, 126, 0.1);
+            color: var(--primary-green);
+        }
+
+        .type-imaging {
+            background-color: rgba(255, 171, 0, 0.1);
+            color: var(--warning-yellow);
+        }
+
+        .type-prescription {
+            background-color: rgba(255, 86, 48, 0.1);
+            color: var(--alert-red);
+        }
+
+        .record-status {
+            padding: 0.3rem 0.8rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-pending {
+            background-color: rgba(255, 171, 0, 0.1);
+            color: var(--warning-yellow);
+        }
+
+        .status-completed {
+            background-color: rgba(54, 179, 126, 0.1);
+            color: var(--primary-green);
+        }
+
+        .status-archived {
+            background-color: rgba(107, 119, 140, 0.1);
+            color: var(--text-muted);
+        }
+
+        .record-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-action {
+            padding: 0.4rem 0.8rem;
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: var(--transition);
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-view {
+            background-color: var(--light-gray);
+            color: var(--dark-gray);
+        }
+
+        .btn-view:hover {
+            background-color: var(--medium-gray);
+        }
+
+        .btn-edit {
+            background-color: var(--primary-blue);
+            color: var(--white);
+        }
+
+        .btn-edit:hover {
+            background-color: var(--secondary-blue);
+        }
+
+        .btn-download {
+            background-color: var(--primary-green);
+            color: var(--white);
+        }
+
+        .btn-download:hover {
+            background-color: #2e9e6d;
+        }
+
+        .btn-archive {
+            background-color: var(--warning-yellow);
+            color: var(--white);
+        }
+
+        .btn-archive:hover {
+            background-color: #e09a00;
+        }
+
+        /* -------------------------- RECENT RECORD PREVIEWS -------------------------- */
+        .recent-records {
+            background-color: var(--white);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 2rem;
+        }
+
+        .records-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .record-card {
+            border: 1px solid var(--medium-gray);
+            border-radius: var(--border-radius);
+            padding: 1.2rem;
+            transition: var(--transition);
+        }
+
+        .record-card:hover {
+            border-color: var(--primary-blue);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .record-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .record-card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .record-card-date {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .record-card-details p {
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            line-height: 1.5;
+        }
+
+        .record-card-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.8rem;
+            margin-top: 1rem;
+        }
+
+        /* -------------------------- PAGINATION -------------------------- */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+        }
+
+        .page-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--medium-gray);
+            background-color: var(--white);
+            color: var(--dark-gray);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .page-btn:hover {
+            border-color: var(--primary-blue);
+            color: var(--primary-blue);
+        }
+
+        .page-btn.active {
+            background-color: var(--primary-blue);
+            color: var(--white);
+            border-color: var(--primary-blue);
+        }
+
+        .page-btn:disabled {
+            border-color: var(--light-gray);
+            color: var(--text-muted);
+            cursor: not-allowed;
+        }
+
+        /* -------------------------- MOBILE RESPONSIVENESS -------------------------- */
+        @media (max-width: 1200px) {
+            .sidebar {
+                transform: translateX(-100%);
+                position: fixed;
+                z-index: 101;
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .sidebar-collapsed + .main-content {
+                margin-left: 0;
+            }
+
+            .mobile-menu-toggle {
+                display: block;
+                position: fixed;
+                top: 1.5rem;
+                left: 1.5rem;
+                background-color: var(--white);
+                box-shadow: var(--shadow-sm);
+                width: 48px;
+                height: 48px;
+                border-radius: 50%;
+                border: none;
+                font-size: 1.5rem;
+                color: var(--dark-gray);
+                cursor: pointer;
+                z-index: 102;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .top-bar {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .top-bar-actions {
+                width: 100%;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .search-input {
+                width: 100%;
+            }
+
+            .records-filters {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-actions {
+                justify-content: flex-end;
+            }
+
+            .records-table {
+                font-size: 0.85rem;
+            }
+
+            .records-table th,
+            .records-table td {
+                padding: 0.7rem;
+            }
+
+            .record-actions {
+                flex-direction: column;
+                gap: 0.3rem;
+            }
+
+            .records-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .records-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" id="mobileMenuToggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <div class="page-wrapper">
+        <!-- Side Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-top">
+                <div class="sidebar-logo-container">
+                    <div class="sidebar-logo">HS</div>
+                    <div class="sidebar-brand-name">HealthSync</div>
+                </div>
+
+                <div class="provider-profile">
+                    <div class="profile-header">
+                        <div class="profile-avatar">
+                            <img src="https://randomuser.me/api/portraits/women/22.jpg" alt="Dr. Ana Santos">
+                        </div>
+                        <div class="profile-info">
+                            <h3>Dr. Ana Santos</h3>
+                            <p>General Medicine Specialist</p>
+                            <span class="profile-badge">Verified Provider</span>
+                        </div>
+                    </div>
+                    <div class="profile-actions">
+                        <a href="provider-profile.html" class="btn-profile btn-profile-edit">
+                            <i class="fas fa-user-edit"></i> Edit Profile
+                        </a>
+                        <a href="provider-login.html" class="btn-profile btn-profile-logout">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </div>
+                </div>
+
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="provider-dashboard.html" class="nav-link">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="provider-schedule.html" class="nav-link">
+                            <i class="fas fa-calendar"></i>
+                            <span>My Schedule</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="provider-appointments.html" class="nav-link">
+                            <i class="fas fa-calendar-check"></i>
+                            <span>Appointments</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="provider-patients.html" class="nav-link">
+                            <i class="fas fa-users"></i>
+                            <span>Patients</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="provider-records.html" class="nav-link active">
+                            <i class="fas fa-file-medical"></i>
+                            <span>Medical Records</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="provider-prescriptions.html" class="nav-link">
+                            <i class="fas fa-pills"></i>
+                            <span>Prescriptions</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="provider-messages.html" class="nav-link">
+                            <i class="fas fa-comments"></i>
+                            <span>Messages</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="provider-settings.html" class="nav-link">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="provider-reports.html" class="nav-link">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>Reports</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <button class="sidebar-toggle-btn" id="sidebarToggle">
+                <i class="fas fa-angle-double-left"></i>
+            </button>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <header class="top-bar">
+                <h2 class="page-title">Medical Records Management</h2>
+                <div class="top-bar-actions">
+                    <div class="search-box">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="search-input" placeholder="Search records by patient or ID...">
+                    </div>
+                    <button class="btn-add">
+                        <i class="fas fa-file-medical-alt"></i> Create New Record
+                    </button>
+                    <div class="notification-icon">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge">5</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Records Stats Cards -->
+            <section class="records-stats">
+                <div class="stats-card">
+                    <div class="card-icon icon-total">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>286</h3>
+                        <p>Total Medical Records</p>
+                        <span class="change-indicator indicator-up">
+                            <i class="fas fa-arrow-up"></i> 15 this month
+                        </span>
+                    </div>
+                </div>
+                <div class="stats-card">
+                    <div class="card-icon icon-pending">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>18</h3>
+                        <p>Pending Records</p>
+                        <span class="change-indicator indicator-up">
+                            <i class="fas fa-arrow-up"></i> 3 from last week
+                        </span>
+                    </div>
+                </div>
+                <div class="stats-card">
+                    <div class="card-icon icon-completed">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>242</h3>
+                        <p>Completed Records</p>
+                        <span class="change-indicator indicator-up">
+                            <i class="fas fa-arrow-up"></i> 12 this month
+                        </span>
+                    </div>
+                </div>
+                <div class="stats-card">
+                    <div class="card-icon icon-archived">
+                        <i class="fas fa-archive"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>26</h3>
+                        <p>Archived Records</p>
+                        <span class="change-indicator indicator-down">
+                            <i class="fas fa-arrow-down"></i> 2 from last month
+                        </span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Records Filters -->
+            <section class="records-filters">
+                <div class="filter-group">
+                    <label for="filter-patient">Patient Name/ID</label>
+                    <input type="text" id="filter-patient" class="filter-input" placeholder="Enter patient details">
+                </div>
+                <div class="filter-group">
+                    <label for="filter-record-type">Record Type</label>
+                    <select id="filter-record-type" class="filter-select">
+                        <option value="">All Record Types</option>
+                        <option value="consultation">Consultation Notes</option>
+                        <option value="lab">Lab Results</option>
+                        <option value="imaging">Imaging Reports</option>
+                        <option value="prescription">Prescription Records</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filter-status">Record Status</label>
+                    <select id="filter-status" class="filter-select">
+                        <option value="">All Statuses</option>
+                        <option value="pending">Pending</option>
+                        <option value="completed">Completed</option>
+                        <option value="archived">Archived</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filter-date-range">Date Range</label>
+                    <input type="date" id="filter-date-range" class="filter-input">
+                </div>
+                <div class="filter-actions">
+                    <button class="btn-filter btn-apply">
+                        <i class="fas fa-filter"></i> Apply Filters
+                    </button>
+                    <button class="btn-filter btn-reset">
+                        <i class="fas fa-times"></i> Reset
+                    </button>
+                </div>
+            </section>
+
+            <!-- Medical Records Table -->
+            <section class="records-section">
+                <div class="section-header">
+                    <h3 class="section-title">All Medical Records</h3>
+                    <a href="#" class="section-action">Export All Records</a>
+                </div>
+                <table class="records-table">
+                    <thead>
+                        <tr>
+                            <th>Patient</th>
+                            <th>Record ID</th>
+                            <th>Record Type</th>
+                            <th>Date Created</th>
+                            <th>Last Updated</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div class="patient-info">
+                                    <div class="patient-avatar-small">
+                                        <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Maria Dela Cruz">
+                                    </div>
+                                    <div>
+                                        <div class="patient-name">Maria Dela Cruz</div>
+                                        <div class="patient-id">HS-2024-0567</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>REC-2024-1089</td>
+                            <td><span class="record-type type-consultation">Consultation Notes</span></td>
+                            <td>Oct 15, 2024</td>
+                            <td>Oct 15, 2024</td>
+                            <td><span class="record-status status-completed">Completed</span></td>
+                            <td class="record-actions">
+                                <button class="btn-action btn-view"><i class="fas fa-eye"></i> View</button>
+                                <button class="btn-action btn-edit"><i class="fas fa-pencil"></i> Edit</button>
+                                <button class="btn-action btn-download"><i class="fas fa-download"></i> Download</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="patient-info">
+                                    <div class="patient-avatar-small">
+                                        <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Juan Dela Rosa">
+                                    </div>
+                                    <div>
+                                        <div class="patient-name">Juan Dela Rosa</div>
+                                        <div class="patient-id">HS-2024-0421</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>REC-2024-0976</td>
+                            <td><span class="record-type type-lab">Lab Results</span></td>
+                            <td>Oct 15, 2024</td>
+                            <td>Oct 15, 2024</td>
+                            <td><span class="record-status status-completed">Completed</span></td>
+                            <td class="record-actions">
+                                <button class="btn-action btn-view"><i class="fas fa-eye"></i> View</button>
+                                <button class="btn-action btn-edit"><i class="fas fa-pencil"></i> Edit</button>
+                                <button class="btn-action btn-download"><i class="fas fa-download"></i> Download</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="patient-info">
+                                    <div class="patient-avatar-small">
+                                        <img src="https://randomuser.me/api/portraits/women/67.jpg" alt="Liza Santos">
+                                    </div>
+                                    <div>
+                                        <div class="patient-name">Liza Santos</div>
+                                        <div class="patient-id">HS-2024-0789</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>REC-2024-1123</td>
+                            <td><span class="record-type type-imaging">Imaging Reports</span></td>
+                            <td>Oct 12, 2024</td>
+                            <td>Oct 13, 2024</td>
+                            <td><span class="record-status status-completed">Completed</span></td>
+                            <td class="record-actions">
+                                <button class="btn-action btn-view"><i class="fas fa-eye"></i> View</button>
+                                <button class="btn-action btn-edit"><i class="fas fa-pencil"></i> Edit</button>
+                                <button class="btn-action btn-download"><i class="fas fa-download"></i> Download</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="patient-info">
+                                    <div class="patient-avatar-small">
+                                        <img src="https://randomuser.me/api/portraits/men/54.jpg" alt="Roberto Reyes">
+                                    </div>
+                                    <div>
+                                        <div class="patient-name">Roberto Reyes</div>
+                                        <div class="patient-id">HS-2024-0235</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>REC-2024-0854</td>
+                            <td><span class="record-type type-prescription">Prescription Records</span></td>
+                            <td>Oct 10, 2024</td>
+                            <td>Oct 10, 2024</td>
+                            <td><span class="record-status status-completed">Completed</span></td>
+                            <td class="record-actions">
+                                <button class="btn-action btn-view"><i class="fas fa-eye"></i> View</button>
+                                <button class="btn-action btn-edit"><i class="fas fa-pencil"></i> Edit</button>
+                                <button class="btn-action btn-download"><i class="fas fa-download"></i> Download</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="patient-info">
+                                    <div class="patient-avatar-small">
+                                        <img src="https://randomuser.me/api/portraits/women/78.jpg" alt="Sofia Martinez">
+                                    </div>
+                                    <div>
+                                        <div class="patient-name">Sofia Martinez</div>
+                                        <div class="patient-id">HS-2024-0912</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>REC-2024-1156</td>
+                            <td><span class="record-type type-consultation">Consultation Notes</span></td>
+                            <td>Oct 08, 2024</td>
+                            <td>Oct 09, 2024</td>
+                            <td><span class="record-status status-pending">Pending</span></td>
+                            <td class="record-actions">
+                                <button class="btn-action btn-view"><i class="fas fa-eye"></i> View</button>
+                                <button class="btn-action btn-edit"><i class="fas fa-pencil"></i> Edit</button>
+                                <button class="btn-action btn-download"><i class="fas fa-download"></i> Download</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="patient-info">
+                                    <div class="patient-avatar-small">
+                                        <img src="https://randomuser.me/api/portraits/men/89.jpg" alt="Pedro Cruz">
+                                    </div>
+                                    <div>
+                                        <div class="patient-name">Pedro Cruz</div>
+                                        <div class="patient-id">HS-2024-0876</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>REC-2024-0743</td>
+                            <td><span class="record-type type-lab">Lab Results</span></td>
+                            <td>Sep 30, 2024</td>
+                            <td>Oct 02, 2024</td>
+                            <td><span class="record-status status-archived">Archived</span></td>
+                            <td class="record-actions">
+                                <button class="btn-action btn-view"><i class="fas fa-eye"></i> View</button>
+                                <button class="btn-action btn-archive"><i class="fas fa-box-open"></i> Unarchive</button>
+                                <button class="btn-action btn-download"><i class="fas fa-download"></i> Download</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Pagination -->
+                <div class="pagination">
+                    <button class="page-btn" disabled>
+                        <i class="fas fa-angle-left"></i>
+                    </button>
+                    <button class="page-btn active">1</button>
+                    <button class="page-btn">2</button>
+                    <button class="page-btn">3</button>
+                    <button class="page-btn">4</button>
+                    <button class="page-btn">5</button>
+                    <button class="page-btn">
+                        <i class="fas fa-angle-right"></i>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Recent Record Previews -->
+            <section class="recent-records">
+                <div class="section-header">
+                    <h3 class="section-title">Recent Updated Records</h3>
+                    <a href="#" class="section-action">View All Recent</a>
+                </div>
+                <div class="records-grid">
+                    <div class="record-card">
+                        <div class="record-card-header">
+                            <h4 class="record-card-title">Consultation Notes - Maria Dela Cruz</h4>
+                            <span class="record-card-date">Updated: Oct 15, 2024</span>
+                        </div>
+                        <div class="record-card-details">
+                            <p><strong>Chief Complaint:</strong> Persistent headaches and dizziness for 3 days</p>
+                            <p><strong>Vitals:</strong> BP 150/95 mmHg, HR 88 bpm, Temp 36.8°C</p>
+                            <p><strong>Assessment:</strong> Elevated blood pressure; likely due to stress and poor sleep quality</p>
+                            <p><strong>Plan:</strong> Adjust medication dosage, recommend lifestyle modifications</p>
+                        </div>
+                        <div class="record-card-footer">
+                            <button class="btn-action btn-view"><i class="fas fa-eye"></i> Full View</button>
+                            <button class="btn-action btn-edit"><i class="fas fa-pencil"></i> Edit</button>
+                        </div>
+                    </div>
+
+                    <div class="record-card">
+                        <div class="record-card-header">
+                            <h4 class="record-card-title">Lab Results - Juan Dela Rosa</h4>
+                            <span class="record-card-date">Updated: Oct 15, 2024</span>
+                        </div>
+                        <div class="record-card-details">
+                            <p><strong>Test Type:</strong> Complete Blood Count (CBC) + Blood Chemistry</p>
+                            <p><strong>Key Findings:</strong> Fasting glucose 108 mg/dL (borderline), cholesterol 210 mg/dL</p>
+                            <p><strong>Reference Ranges:</strong> Glucose 70-99 mg/dL, Cholesterol <200 mg/dL</p>
+                            <p><strong>Remarks:</strong> Recommend repeat test in 3 months; dietary consultation advised</p>
+                        </div>
+                        <div class="record-card-footer">
+                            <button class="btn-action btn-view"><i class="fas fa-eye"></i> Full View</button>
+                            <button class="btn-action btn-download"><i class="fas fa-download"></i> Download PDF</button>
+                        </div>
+                    </div>
+
+                    <div class="record-card">
+                        <div class="record-card-header">
+                            <h4 class="record-card-title">Imaging Report - Liza Santos</h4>
+                            <span class="record-card-date">Updated: Oct 13, 2024</span>
+                        </div>
+                        <div class="record-card-details">
+                            <p><strong>Imaging Type:</strong> Chest X-ray</p>
+                            <p><strong>Findings:</strong> Mild hyperinflation of lung fields; no signs of consolidation or pleural effusion</p>
+                            <p><strong>Impression:</strong> Consistent with mild asthma; no acute abnormalities noted</p>
+                            <p><strong>Recommendations:</strong> Continue current inhaler regimen; follow-up in 6 months</p>
+                        </div>
+                        <div class="record-card-footer">
+                            <button class="btn-action btn-view"><i class="fas fa-eye"></i> Full View</button>
+                            <button class="btn-action btn-download"><i class="fas fa-download"></i> Download Images</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Records Activity Log -->
+            <section class="records-section">
+                <div class="section-header">
+                    <h3 class="section-title">Records Activity Log</h3>
+                    <a href="#" class="section-action">Clear Old Logs</a>
+                </div>
+                <div style="background-color: var(--light-gray); border-radius: var(--border-radius); padding: 1.5rem;">
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div style="background-color: var(--white); padding: 1rem; border-radius: var(--border-radius);">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div><strong>Dr. Ana Santos</strong> created new record <strong>REC-2024-1189</strong> for <strong>Carlos Reyes</strong></div>
+                                <span style="color: var(--text-muted); font-size: 0.85rem;">Oct 16, 2024 - 09:23 AM</span>
+                            </div>
+                        </div>
+                        <div style="background-color: var(--white); padding: 1rem; border-radius: var(--border-radius);">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div><strong>Dr. Ana Santos</strong> edited record <strong>REC-2024-1156</strong> for <strong>Sofia Martinez</strong></div>
+                                <span style="color: var(--text-muted); font-size: 0.85rem;">Oct 15, 2024 - 03:45 PM</span>
+                            </div>
+                        </div>
+                        <div style="background-color: var(--white); padding: 1rem; border-radius: var(--border-radius);">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div><strong>Nurse Mylene Reyes</strong> uploaded lab results to <strong>REC-2024-0976</strong> for <strong>Juan Dela Rosa</strong></div>
+                                <span style="color: var(--text-muted); font-size: 0.85rem;">Oct 15, 2024 - 11:12 AM</span>
+                            </div>
+                        </div>
+                        <div style="background-color: var(--white); padding: 1rem; border-radius: var(--border-radius);">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div><strong>Dr. Ana Santos</strong> archived record <strong>REC-2024-0743</strong> for <strong>Pedro Cruz</strong></div>
+                                <span style="color: var(--text-muted); font-size: 0.85rem;">Oct 10, 2024 - 02:18 PM</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        </main>
+    </div>
+
+    <script>
+        // Sidebar Toggle Functionality
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('sidebar-collapsed');
+            const icon = sidebarToggle.querySelector('i');
+            icon.classList.toggle('fa-angle-double-left');
+            icon.classList.toggle('fa-angle-double-right');
+        });
+
+        mobileMenuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('active');
+            const icon = mobileMenuToggle.querySelector('i');
+            icon.classList.toggle('fa-bars');
+            icon.classList.toggle('fa-times');
+        });
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', (e) => {
+            if (sidebar.classList.contains('active') && 
+                !sidebar.contains(e.target) && 
+                !mobileMenuToggle.contains(e.target)) {
+                sidebar.classList.remove('active');
+                mobileMenuToggle.querySelector('i').classList.remove('fa-times');
+                mobileMenuToggle.querySelector('i').classList.add('fa-bars');
+            }
+        });
+    </script>
+</body>
+</html>
+
+

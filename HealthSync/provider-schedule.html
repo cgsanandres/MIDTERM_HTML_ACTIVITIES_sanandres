@@ -1,0 +1,1502 @@
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthSync – Provider Schedule</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* -------------------------- GLOBAL VARIABLES & RESET -------------------------- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        :root {
+            --primary-blue: #165DFF;
+            --primary-green: #36B37E;
+            --secondary-blue: #0A4BDE;
+            --alert-red: #FF5630;
+            --warning-yellow: #FFAB00;
+            --light-gray: #F5F7FA;
+            --medium-gray: #EAECEF;
+            --dark-gray: #42526E;
+            --text-muted: #6B778C;
+            --white: #FFFFFF;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.12);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --border-radius: 8px;
+            --border-radius-lg: 16px;
+        }
+
+        body {
+            background-color: var(--light-gray);
+            color: var(--dark-gray);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* -------------------------- SIDEBAR NAVIGATION -------------------------- */
+        .sidebar {
+            width: 280px;
+            background-color: var(--white);
+            box-shadow: var(--shadow-sm);
+            padding: 2rem;
+            position: fixed;
+            height: 100vh;
+            transition: var(--transition);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .sidebar-collapsed {
+            width: 80px;
+            padding: 2rem 1rem;
+            text-align: center;
+        }
+
+        .sidebar-logo-container {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            margin-bottom: 3rem;
+        }
+
+        .sidebar-collapsed .sidebar-logo-container {
+            justify-content: center;
+        }
+
+        .sidebar-logo {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .sidebar-brand-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        .sidebar-collapsed .sidebar-brand-name {
+            display: none;
+        }
+
+        .provider-profile {
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--medium-gray);
+        }
+
+        .sidebar-collapsed .provider-profile {
+            display: none;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .profile-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid var(--primary-blue);
+        }
+
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-info h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .profile-info p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .profile-badge {
+            padding: 0.2rem 0.6rem;
+            background-color: rgba(22, 93, 255, 0.1);
+            color: var(--primary-blue);
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: inline-block;
+            margin-top: 0.5rem;
+        }
+
+        .profile-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .btn-profile {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .btn-profile-edit {
+            background-color: var(--light-gray);
+            color: var(--dark-gray);
+        }
+
+        .btn-profile-edit:hover {
+            background-color: var(--medium-gray);
+        }
+
+        .btn-profile-logout {
+            background-color: var(--alert-red);
+            color: var(--white);
+        }
+
+        .btn-profile-logout:hover {
+            background-color: #e04a2b;
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            padding: 1rem;
+            text-decoration: none;
+            color: var(--dark-gray);
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+            font-weight: 500;
+        }
+
+        .sidebar-collapsed .nav-link span {
+            display: none;
+        }
+
+        .sidebar-collapsed .nav-link {
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .nav-link.active, .nav-link:hover {
+            background-color: var(--primary-blue);
+            color: var(--white);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .sidebar-toggle-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: var(--dark-gray);
+            cursor: pointer;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+            align-self: flex-start;
+        }
+
+        .sidebar-collapsed .sidebar-toggle-btn {
+            align-self: center;
+        }
+
+        .sidebar-toggle-btn:hover {
+            background-color: var(--medium-gray);
+        }
+
+        /* -------------------------- MAIN CONTENT -------------------------- */
+        .main-content {
+            margin-left: 280px;
+            transition: var(--transition);
+            padding: 2rem;
+        }
+
+        .sidebar-collapsed + .main-content {
+            margin-left: 80px;
+        }
+
+        /* -------------------------- TOP BAR -------------------------- */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            background-color: var(--white);
+            padding: 1rem 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .top-bar-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .notification-icon {
+            position: relative;
+            font-size: 1.5rem;
+            color: var(--dark-gray);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .notification-icon:hover {
+            color: var(--primary-blue);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 18px;
+            height: 18px;
+            background-color: var(--alert-red);
+            color: var(--white);
+            border-radius: 50%;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-input {
+            padding: 0.7rem 1rem 0.7rem 2.5rem;
+            border: 1px solid var(--medium-gray);
+            border-radius: var(--border-radius);
+            font-size: 0.95rem;
+            width: 250px;
+            transition: var(--transition);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(22, 93, 255, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        .btn-schedule {
+            padding: 0.8rem 1.5rem;
+            background-color: var(--primary-blue);
+            color: var(--white);
+            border: none;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .btn-schedule:hover {
+            background-color: var(--secondary-blue);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* -------------------------- SCHEDULE TABS -------------------------- */
+        .schedule-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            background-color: var(--white);
+            padding: 0.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .tab-btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: var(--border-radius);
+            background-color: var(--light-gray);
+            color: var(--dark-gray);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            flex: 1;
+            text-align: center;
+        }
+
+        .tab-btn.active, .tab-btn:hover {
+            background-color: var(--primary-blue);
+            color: var(--white);
+        }
+
+        /* -------------------------- SCHEDULE CALENDAR VIEW -------------------------- */
+        .calendar-view {
+            background-color: var(--white);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 2.5rem;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--medium-gray);
+        }
+
+        .calendar-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .calendar-nav-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--medium-gray);
+            border-radius: var(--border-radius);
+            background-color: var(--white);
+            color: var(--dark-gray);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .calendar-nav-btn:hover {
+            border-color: var(--primary-blue);
+            color: var(--primary-blue);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
+        }
+
+        .calendar-day-header {
+            text-align: center;
+            padding: 1rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--medium-gray);
+        }
+
+        .calendar-day-cell {
+            min-height: 100px;
+            padding: 0.5rem;
+            border: 1px solid var(--medium-gray);
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .calendar-day-cell:hover {
+            border-color: var(--primary-blue);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .day-number {
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .day-number.today {
+            background-color: var(--primary-blue);
+            color: var(--white);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 0 0.5rem auto;
+        }
+
+        .slot-item {
+            padding: 0.3rem 0.5rem;
+            margin-bottom: 0.3rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: var(--white);
+        }
+
+        .slot-booked {
+            background-color: var(--primary-blue);
+        }
+
+        .slot-available {
+            background-color: var(--primary-green);
+            cursor: pointer;
+        }
+
+        .slot-unavailable {
+            background-color: var(--text-muted);
+        }
+
+        /* -------------------------- WEEKLY SCHEDULE LIST -------------------------- */
+        .weekly-schedule {
+            background-color: var(--white);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 2.5rem;
+        }
+
+        .schedule-day-section {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--medium-gray);
+        }
+
+        .schedule-day-section:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .day-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .day-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .day-date {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .add-slot-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: var(--border-radius);
+            background-color: var(--primary-green);
+            color: var(--white);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .add-slot-btn:hover {
+            background-color: #2d996a;
+        }
+
+        .time-slot-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .time-slot-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border: 1px solid var(--medium-gray);
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+        }
+
+        .time-slot-item:hover {
+            border-color: var(--primary-blue);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .slot-info {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+        }
+
+        .slot-time {
+            font-weight: 500;
+            min-width: 
+            font-weight: 500;
+            min-width: 120px;
+        }
+
+        .slot-status-badge {
+            padding: 0.3rem 0.8rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-available {
+            background-color: rgba(54, 179, 126, 0.1);
+            color: var(--primary-green);
+        }
+
+        .status-booked {
+            background-color: rgba(22, 93, 255, 0.1);
+            color: var(--primary-blue);
+        }
+
+        .status-unavailable {
+            background-color: rgba(107, 119, 140, 0.1);
+            color: var(--text-muted);
+        }
+
+        .slot-patient {
+            font-size: 0.95rem;
+        }
+
+        .slot-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .slot-action-btn {
+            padding: 0.4rem 0.8rem;
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: var(--transition);
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-edit-slot {
+            background-color: var(--light-gray);
+            color: var(--dark-gray);
+        }
+
+        .btn-edit-slot:hover {
+            background-color: var(--medium-gray);
+        }
+
+        .btn-delete-slot {
+            background-color: var(--alert-red);
+            color: var(--white);
+        }
+
+        .btn-delete-slot:hover {
+            background-color: #e04a2b;
+        }
+
+        .btn-view-details {
+            background-color: var(--primary-blue);
+            color: var(--white);
+        }
+
+        .btn-view-details:hover {
+            background-color: var(--secondary-blue);
+        }
+
+        /* -------------------------- SCHEDULE STATS -------------------------- */
+        .schedule-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .stat-card {
+            background-color: var(--white);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: var(--border-radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--white);
+        }
+
+        .icon-total-slots { background-color: var(--primary-blue); }
+        .icon-booked-slots { background-color: var(--secondary-blue); }
+        .icon-available-slots { background-color: var(--primary-green); }
+        .icon-unavailable-slots { background-color: var(--text-muted); }
+
+        .stat-content h3 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+        }
+
+        .stat-content p {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+
+        .stat-content .stat-percentage {
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        /* -------------------------- SCHEDULE PREFERENCES -------------------------- */
+        .schedule-preferences {
+            background-color: var(--white);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .preferences-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .preferences-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .preferences-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .form-group input, .form-group select {
+            padding: 0.7rem 1rem;
+            border: 1px solid var(--medium-gray);
+            border-radius: var(--border-radius);
+            font-size: 0.95rem;
+            transition: var(--transition);
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(22, 93, 255, 0.1);
+        }
+
+        .save-preferences-btn {
+            grid-column: 1 / -1;
+            padding: 0.8rem 1.5rem;
+            background-color: var(--primary-blue);
+            color: var(--white);
+            border: none;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .save-preferences-btn:hover {
+            background-color: var(--secondary-blue);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* -------------------------- MOBILE RESPONSIVENESS -------------------------- */
+        @media (max-width: 1200px) {
+            .sidebar {
+                transform: translateX(-100%);
+                position: fixed;
+                z-index: 101;
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .sidebar-collapsed + .main-content {
+                margin-left: 0;
+            }
+
+            .mobile-menu-toggle {
+                display: block;
+                position: fixed;
+                top: 1.5rem;
+                left: 1.5rem;
+                background-color: var(--white);
+                box-shadow: var(--shadow-sm);
+                width: 48px;
+                height: 48px;
+                border-radius: 50%;
+                border: none;
+                font-size: 1.5rem;
+                color: var(--dark-gray);
+                cursor: pointer;
+                z-index: 102;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .top-bar {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .top-bar-actions {
+                width: 100%;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .search-input {
+                width: 100%;
+            }
+
+            .schedule-tabs {
+                flex-direction: column;
+            }
+
+            .calendar-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .time-slot-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .slot-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+
+            .preferences-form {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" id="mobileMenuToggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <div class="page-wrapper">
+        <!-- Side Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-top">
+                <div class="sidebar-logo-container">
+                    <div class="sidebar-logo">HS</div>
+                    <div class="sidebar-brand-name">HealthSync</div>
+                </div>
+
+                <div class="provider-profile">
+                    <div class="profile-header">
+                        <div class="profile-avatar">
+                            <img src="https://randomuser.me/api/portraits/women/22.jpg" alt="Dr. Ana Santos">
+                        </div>
+                        <div class="profile-info">
+                            <h3>Dr. Ana Santos</h3>
+                            <p>General Medicine Specialist</p>
+                            <span class="profile-badge">Verified Provider</span>
+                        </div>
+                    </div>
+                    <div class="profile-actions">
+                        <a href="provider-profile.html" class="btn-profile btn-profile-edit">
+                            <i class="fas fa-user-edit"></i> Edit Profile
+                        </a>
+                        <a href="provider-login.html" class="btn-profile btn-profile-logout">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </div>
+                </div>
+
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="provider-dashboard.html" class="nav-link">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="provider-schedule.html" class="nav-link active">
+                            <i class="fas fa-calendar"></i>
+                            <span>My Schedule</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="provider-appointments.html" class="nav-link">
+                            <i class="fas fa-calendar-check"></i>
+                            <span>Appointments</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="provider-patients.html" class="nav-link">
+                            <i class="fas fa-users"></i>
+                            <span>Patients</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="provider-records.html" class="nav-link">
+                            <i class="fas fa-file-medical"></i>
+                            <span>Medical Records</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="provider-prescriptions.html" class="nav-link">
+                            <i class="fas fa-pills"></i>
+                            <span>Prescriptions</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="provider-messages.html" class="nav-link">
+                            <i class="fas fa-comments"></i>
+                            <span>Messages</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="provider-settings.html" class="nav-link">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="provider-reports.html" class="nav-link">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>Reports</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <button class="sidebar-toggle-btn" id="sidebarToggle">
+                <i class="fas fa-angle-double-left"></i>
+            </button>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <header class="top-bar">
+                <h2 class="page-title">My Schedule</h2>
+                <div class="top-bar-actions">
+                    <div class="search-box">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="search-input" placeholder="Search schedule slots...">
+                    </div>
+                    <a href="provider-manage-schedule.html" class="btn-schedule">
+                        <i class="fas fa-calendar-plus"></i> Add Time Slot
+                    </a>
+                    <div class="notification-icon">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge">5</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Schedule Tabs -->
+            <div class="schedule-tabs">
+                <button class="tab-btn active">Calendar View</button>
+                <button class="tab-btn">Weekly List</button>
+                <button class="tab-btn">Monthly Overview</button>
+            </div>
+
+            <!-- Calendar View Section -->
+            <section class="calendar-view">
+                <div class="calendar-header">
+                    <div class="calendar-title">October 2024</div>
+                    <div class="calendar-nav">
+                        <button class="calendar-nav-btn"><i class="fas fa-angle-left"></i> September</button>
+                        <button class="calendar-nav-btn">Today</button>
+                        <button class="calendar-nav-btn">November <i class="fas fa-angle-right"></i></button>
+                    </div>
+                </div>
+                <div class="calendar-grid">
+                    <div class="calendar-day-header">Sunday</div>
+                    <div class="calendar-day-header">Monday</div>
+                    <div class="calendar-day-header">Tuesday</div>
+                    <div class="calendar-day-header">Wednesday</div>
+                    <div class="calendar-day-header">Thursday</div>
+                    <div class="calendar-day-header">Friday</div>
+                    <div class="calendar-day-header">Saturday</div>
+
+                    <div class="calendar-day-cell">
+                        <div class="day-number">29</div>
+                    </div>
+                    <div class="calendar-day-cell">
+                        <div class="day-number">30</div>
+                    </div>
+                    <div class="calendar-day-cell">
+                        <div class="day-number">31</div>
+                    </div>
+                    <div class="calendar-day-cell">
+                        <div class="day-number">1</div>
+                        <div class="slot-item slot-unavailable">08:00-12:00 - Clinic Closed</div>
+                    </div>
+                    <div class="calendar-day-cell">
+                        <div class="day-number">2</div>
+                        <div class="slot-item slot-booked">10:00-11:00 - Maria Dela Cruz</div>
+                        <div class="slot-item slot-available">11:00-12:00 - Available</div>
+                    </div>
+                    <div class="calendar-day-cell">
+                        <div class="day-number">3</div>
+                        <div class="slot-item slot-booked">02:00-03:00 - Juan Dela Rosa</div>
+                    </div>
+                    <div class="calendar-day-cell">
+                        <div class="day-number">4</div>
+                    </div>
+
+                    <div class="calendar-day-cell">
+                        <div class="day-number">5</div>
+                    </div>
+                    <div class="calendar-day-cell">
+                        <div class="day-number">6</div>
+                        <div class="slot-item slot-available">09:00-10:00 - Available</div>
+                        <div class="slot-item slot-available">10:00-11:00 - Available</div>
+                    </div>
+                    <div class="calendar-day-cell">
+                        <div class="day-number">7</div>
+                        <div class="slot-item slot-booked">01:00-02:00 - Liza Santos</div>
+                        <div class="slot-item slot-booked">02:00-03:00 - Roberto Reyes</div>
+                    </div>
+                    <div class="calendar-day-cell">
+                        <div class="day-number">8</div>
+                        <div class="slot-item slot-unavailable">08:00-12:00 - Training</div>
+                    </div>
+                    <div class="calendar-day-cell">
+                        <div class="day-number">9</div>
+                        <div class="slot-item slot-available">10:00-11:00 - Available</div>
+                    </div>
+                    <div class="calendar-day-cell">
+                        <div class="day-number">10</div>
+                        <div class="slot-item slot-booked">11:00-12:00 - Sofia Martinez</div>
+                        <div class="slot-item slot-available">02:00-03:00 - Available</div>
+
+                    </div>
+                    <div class="calendar-day-cell">
+                        <div class="day-number">11</div>
+                    </div>
+
+                    <div class="calendar-day-cell">
+                        <div class="day-number">12</div>
+                    </div>
+                    <div class="calendar-day-cell">
+                        <div class="day-number">13</div>
+                        <div class="slot-item slot-booked">09:00-10:00 - Pedro Cruz</div>
+                        <div class="slot-item slot-unavailable">10:00-12:00 - Meeting</div>
+                    </div>
+                    <div class="calendar-day-cell">
+                        <div class="day-number">14</div>
+                        <div class="slot-item slot-available">01:00-02:00 - Available</div>
+                        <div class="slot-item slot-booked">02:00-03:00 - Julia Reyes</div>
+                    </div>
+                    <div class="calendar-day-cell">
+                        <div class="day-number">15</div>
+                        <div class="slot-item slot-booked">10:00-11:00 - Maria Dela Cruz</div>
+                        <div class="slot-item slot-booked">11:15-12:15 - Juan Dela Rosa</div>
+                    </div>
+                    <div class="calendar-day-cell">
+                        <div class="day-number today">16</div>
+                        <div class="slot-item slot-booked">08:00-09:00 - Ana Reyes</div>
+                        <div class="slot-item slot-available">09:00-10:00 - Available</div>
+                        <div class="slot-item slot-unavailable">01:00-03:00 - Unavailable</div>
+                    </div>
+                    <div class="calendar-day-cell">
+                        <div class="day-number">17</div>
+                        <div class="slot-item slot-available">10:00-12:00 - Available</div>
+                        <div class="slot-item slot-booked">02:00-03:00 - Carlos Mendoza</div>
+                    </div>
+                    <div class="calendar-day-cell">
+                        <div class="day-number">18</div>
+                        <div class="slot-item slot-unavailable">08:00-11:00 - Unavailable</div>
+                        <div class="slot-item slot-available">03:00-05:00 - Available</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Schedule Stats Cards -->
+            <section class="schedule-stats">
+                <div class="stat-card">
+                    <div class="stat-icon icon-total-slots">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>48</h3>
+                        <p>Total Time Slots (This Month)</p>
+                        <span class="stat-percentage">
+                            <i class="fas fa-arrow-up"></i> 12% from last month
+                        </span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon icon-booked-slots">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>27</h3>
+                        <p>Booked Slots</p>
+                        <span class="stat-percentage">
+                            <i class="fas fa-arrow-up"></i> 8% from last month
+                        </span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon icon-available-slots">
+                        <i class="fas fa-calendar-plus"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>15</h3>
+                        <p>Available Slots</p>
+                        <span class="stat-percentage">
+                            <i class="fas fa-arrow-down"></i> 5% from last month
+                        </span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon icon-unavailable-slots">
+                        <i class="fas fa-calendar-times"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>6</h3>
+                        <p>Unavailable Slots</p>
+                        <span class="stat-percentage">
+                            <i class="fas fa-arrow-up"></i> 2% from last month
+                        </span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Weekly Schedule List -->
+            <section class="weekly-schedule">
+                <div class="section-header">
+                    <h3 class="section-title">This Week Schedule - October 14-20, 2024</h3>
+                    <a href="provider-manage-schedule.html" class="section-action">Manage All Slots</a>
+                </div>
+
+                <!-- MONDAY -->
+                <div class="schedule-day-section">
+                    <div class="day-section-header">
+                        <div>
+                            <span class="day-name">Monday</span>
+                            <span class="day-date">- October 16, 2024</span>
+                        </div>
+                        <button class="add-slot-btn"><i class="fas fa-plus"></i> Add Slot</button>
+                    </div>
+                    <div class="time-slot-list">
+                        <div class="time-slot-item">
+                            <div class="slot-info">
+                                <div class="slot-time">08:00 AM - 09:00 AM</div>
+                                <div class="slot-status-badge status-booked">Booked</div>
+                                <div class="slot-patient">Ana Reyes | Routine Check-up</div>
+                            </div>
+                            <div class="slot-actions">
+                                <button class="slot-action-btn btn-view-details">View</button>
+                                <button class="slot-action-btn btn-edit-slot">Edit</button>
+                            </div>
+                        </div>
+                        <div class="time-slot-item">
+                            <div class="slot-info">
+                                <div class="slot-time">09:00 AM - 10:00 AM</div>
+                                <div class="slot-status-badge status-available">Available</div>
+                                <div class="slot-patient">- No Booking -</div>
+                            </div>
+                            <div class="slot-actions">
+                                <button class="slot-action-btn btn-edit-slot">Edit</button>
+                                <button class="slot-action-btn btn-delete-slot">Delete</button>
+                            </div>
+                        </div>
+                        <div class="time-slot-item">
+                            <div class="slot-info">
+                                <div class="slot-time">01:00 PM - 03:00 PM</div>
+                                <div class="slot-status-badge status-unavailable">Unavailable</div>
+                                <div class="slot-patient">- Not Accepting Bookings -</div>
+                            </div>
+                            <div class="slot-actions">
+                                <button class="slot-action-btn btn-edit-slot">Edit</button>
+                                <button class="slot-action-btn btn-delete-slot">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TUESDAY -->
+                <div class="schedule-day-section">
+                    <div class="day-section-header">
+                        <div>
+                            <span class="day-name">Tuesday</span>
+                            <span class="day-date">- October 17, 2024</span>
+                        </div>
+                        <button class="add-slot-btn"><i class="fas fa-plus"></i> Add Slot</button>
+                    </div>
+                    <div class="time-slot-list">
+                        <div class="time-slot-item">
+                            <div class="slot-info">
+                                <div class="slot-time">10:00 AM - 12:00 NN</div>
+                                <div class="slot-status-badge status-available">Available</div>
+                                <div class="slot-patient">- No Booking -</div>
+                            </div>
+                            <div class="slot-actions">
+                                <button class="slot-action-btn btn-edit-slot">Edit</button>
+                                <button class="slot-action-btn btn-delete-slot">Delete</button>
+                            </div>
+                        </div>
+                        <div class="time-slot-item">
+                            <div class="slot-info">
+                                <div class="slot-time">02:00 PM - 03:00 PM</div>
+                                <div class="slot-status-badge status-booked">Booked</div>
+                                <div class="slot-patient">Carlos Mendoza | Post-Surgery Follow-up</div>
+                            </div>
+                            <div class="slot-actions">
+                                <button class="slot-action-btn btn-view-details">View</button>
+                                <button class="slot-action-btn btn-edit-slot">Edit</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- WEDNESDAY -->
+                <div class="schedule-day-section">
+                    <div class="day-section-header">
+                        <div>
+                            <span class="day-name">Wednesday</span>
+                            <span class="day-date">- October 18, 2024</span>
+                        </div>
+                        <button class="add-slot-btn"><i class="fas fa-plus"></i> Add Slot</button>
+                    </div>
+                    <div class="time-slot-list">
+                        <div class="time-slot-item">
+                            <div class="slot-info">
+                                <div class="slot-time">08:00 AM - 11:00 AM</div>
+                                <div class="slot-status-badge status-unavailable">Unavailable</div>
+                                <div class="slot-patient">- Not Accepting Bookings -</div>
+                            </div>
+                            <div class="slot-actions">
+                                <button class="slot-action-btn btn-edit-slot">Edit</button>
+                                <button class="slot-action-btn btn-delete-slot">Delete</button>
+                            </div>
+                        </div>
+                        <div class="time-slot-item">
+                            <div class="slot-info">
+                                <div class="slot-time">03:00 PM - 05:00 PM</div>
+                                <div class="slot-status-badge status-available">Available</div>
+                                <div class="slot-patient">- No Booking -</div>
+                            </div>
+                            <div class="slot-actions">
+                                <button class="slot-action-btn btn-edit-slot">Edit</button>
+                                <button class="slot-action-btn btn-delete-slot">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- THURSDAY TO SUNDAY -->
+                <div class="schedule-day-section">
+                    <div class="day-section-header">
+                        <div>
+                            <span class="day-name">Thursday - Sunday</span>
+                            <span class="day-date">- October 19-20, 2024</span>
+                        </div>
+                        <button class="add-slot-btn"><i class="fas fa-plus"></i> Add Multiple Slots</button>
+                    </div>
+                    <div class="time-slot-list">
+                        <div class="time-slot-item">
+                            <div class="slot-info">
+                                <div class="slot-time">Thursday | 10:00 AM - 12:00 NN</div>
+                                <div class="slot-status-badge status-available">Available</div>
+                                <div class="slot-patient">- No Booking -</div>
+                            </div>
+                            <div class="slot-actions">
+                                <button class="slot-action-btn btn-edit-slot">Edit</button>
+                                <button class="slot-action-btn btn-delete-slot">Delete</button>
+                            </div>
+                        </div>
+                        <div class="time-slot-item">
+                            <div class="slot-info">
+                                <div class="slot-time">Friday | 01:00 PM - 04:00 PM</div>
+                                <div class="slot-status-badge status-unavailable">Unavailable</div>
+                                <div class="slot-patient">- Clinic Closed -</div>
+                            </div>
+                            <div class="slot-actions">
+                                <button class="slot-action-btn btn-edit-slot">Edit</button>
+                                <button class="slot-action-btn btn-delete-slot">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Schedule Preferences -->
+            <section class="schedule-preferences">
+                <div class="preferences-header">
+                    <h3 class="preferences-title">Schedule Preferences</h3>
+                    <a href="provider-settings.html#schedule" class="section-action">Advanced Settings</a>
+                </div>
+                <form class="preferences-form">
+                    <div class="form-group">
+                        <label for="default-slot-duration">Default Slot Duration</label>
+                        <select id="default-slot-duration">
+                            <option value="30">30 Minutes</option>
+                            <option value="60" selected>60 Minutes</option>
+                            <option value="90">90 Minutes</option>
+                            <option value="120">120 Minutes</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="clinic-opening-time">Clinic Opening Time</label>
+                        <input type="time" id="clinic-opening-time" value="08:00">
+                    </div>
+                    <div class="form-group">
+                        <label for="clinic-closing-time">Clinic Closing Time</label>
+                        <input type="time" id="clinic-closing-time" value="17:00">
+                    </div>
+                    <div class="form-group">
+                        <label for="break-time">Break Time (Optional)</label>
+                        <input type="text" id="break-time" placeholder="12:00 PM - 01:00 PM" value="12:00 PM - 01:00 PM">
+                    </div>
+                    <div class="form-group">
+                        <label for="max-bookings-per-day">Maximum Bookings Per Day</label>
+                        <input type="number" id="max-bookings-per-day" min="1" max="20" value="10">
+                    </div>
+                    <div class="form-group">
+                        <label for="booking-advance-days">Allow Bookings Up To</label>
+                        <select id="booking-advance-days">
+                            <option value="7">7 Days in Advance</option>
+                            <option value="14">14 Days in Advance</option>
+                            <option value="30" selected>30 Days in Advance</option>
+                            <option value="60">60 Days in Advance</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="save-preferences-btn"><i class="fas fa-save"></i> Save Preferences</button>
+                </form>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // Sidebar Toggle Functionality
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('sidebar-collapsed');
+            const icon = sidebarToggle.querySelector('i');
+            icon.classList.toggle('fa-angle-double-left');
+            icon.classList.toggle('fa-angle-double-right');
+        });
+
+        mobileMenuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('active');
+            const icon = mobileMenuToggle.querySelector('i');
+            icon.classList.toggle('fa-bars');
+            icon.classList.toggle('fa-times');
+        });
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', (e) => {
+            if (sidebar.classList.contains('active') && 
+                !sidebar.contains(e.target) && 
+                !mobileMenuToggle.contains(e.target)) {
+                sidebar.classList.remove('active');
+                mobileMenuToggle.querySelector('i').classList.remove('fa-times');
+                mobileMenuToggle.querySelector('i').classList.add('fa-bars');
+            }
+        });
+
+        // Schedule Tabs Functionality
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const sections = document.querySelectorAll('.calendar-view, .weekly-schedule');
+        
+        tabBtns.forEach((btn, index) => {
+            btn.addEventListener('click', () => {
+                // Remove active class from all tabs
+                tabBtns.forEach(t => t.classList.remove('active'));
+                // Add active class to clicked tab
+                btn.classList.add('active');
+
+                // Show/hide sections based on tab
+                if(index === 0) {
+                    document.querySelector('.calendar-view').style.display = 'block';
+                    document.querySelector('.weekly-schedule').style.display = 'none';
+                    document.querySelector('.schedule-stats').style.display = 'grid';
+                    document.querySelector('.schedule-preferences').style.display = 'block';
+                } else if(index === 1) {
+                                        document.querySelector('.calendar-view').style.display = 'none';
+                    document.querySelector('.weekly-schedule').style.display = 'block';
+                    document.querySelector('.schedule-stats').style.display = 'grid';
+                    document.querySelector('.schedule-preferences').style.display = 'block';
+                } else {
+                    document.querySelector('.calendar-view').style.display = 'none';
+                    document.querySelector('.weekly-schedule').style.display = 'none';
+                    document.querySelector('.schedule-stats').style.display = 'grid';
+                    document.querySelector('.schedule-preferences').style.display = 'block';
+                    
+                    // Add monthly overview content temporarily
+                    const monthlySection = document.createElement('section');
+                    monthlySection.className = 'monthly-overview';
+                    monthlySection.style.backgroundColor = '#fff';
+                    monthlySection.style.padding = '1.5rem';
+                    monthlySection.style.borderRadius = '8px';
+                    monthlySection.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
+                    monthlySection.style.marginBottom = '2.5rem';
+                    
+                    monthlySection.innerHTML = `
+                        <div class="section-header">
+                            <h3 class="section-title">Monthly Schedule Overview - October 2024</h3>
+                            <a href="provider-reports.html#schedule" class="section-action">Generate Report</a>
+                        </div>
+                        <div class="chart-container" style="height:300px;">
+                            <canvas id="monthlyScheduleChart"></canvas>
+                        </div>
+                    `;
+                    
+                    // Insert after stats section
+                    const statsSection = document.querySelector('.schedule-stats');
+                    statsSection.after(monthlySection);
+
+                    // Create monthly chart
+                    const monthlyCtx = document.getElementById('monthlyScheduleChart').getContext('2d');
+                    new Chart(monthlyCtx, {
+                        type: 'line',
+                        data: {
+                            labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                            datasets: [{
+                                label: 'Total Slots',
+                                data: [10, 12, 14, 12],
+                                borderColor: '#165DFF',
+                                backgroundColor: 'rgba(22, 93, 255, 0.1)',
+                                tension: 0.3,
+                                fill: true
+                            }, {
+                                label: 'Booked Slots',
+                                data: [5, 7, 9, 6],
+                                borderColor: '#36B37E',
+                                backgroundColor: 'rgba(54, 179, 126, 0.1)',
+                                tension: 0.3,
+                                fill: true
+                            }, {
+                                label: 'Available Slots',
+                                data: [3, 4, 3, 5],
+                                borderColor: '#FFAB00',
+                                backgroundColor: 'rgba(255, 171, 0, 0.1)',
+                                tension: 0.3,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: 'Weekly Slot Distribution'
+                                },
+                                legend: {
+                                    position: 'bottom'
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                }
+            });
+        });
+
+        // Form submission handling
+        const preferencesForm = document.querySelector('.preferences-form');
+        preferencesForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('Schedule preferences saved successfully!');
+        });
+
+        // Add slot button click handling
+        const addSlotBtns = document.querySelectorAll('.add-slot-btn');
+        addSlotBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                alert('Redirecting to Add Time Slot page...');
+                window.location.href = 'provider-manage-schedule.html';
+            });
+        });
+    </script>
+</body>
+</html>
+
+
+
